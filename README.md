@@ -3,7 +3,7 @@ luavkv
 
 key-value store with version number
 
-usage:  
+###usage:  
     local vkv = require 'vkv'  
     local key = 12345  
     print(vkv.existed(key)) --false  

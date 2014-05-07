@@ -56,7 +56,6 @@ local function deepcopy(orig) -- used by cycle()
     return copy
 end
 
-local vkv = require 'vkv'
 
 
 local key_num = assert(tonumber(arg[1]), 'USEAGE:luajit '..arg[0]..' key_num [testcase]')
@@ -75,23 +74,28 @@ for i = 1, key_num do
     end
 end
 
-vkv.put(1, 'abcd', test_data)
 
 local loop_times = 1000 * 1000 
 
 local test = {
     get_copy = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', test_data)
         for i = 1, loop_times do
             assert(vkv.get_copy('abcd'))
         end
     end,
     unfold = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', test_data)
         for i = 1, loop_times do
             local c = vkv.get_copy('abcd')
             c[1] = 3121231
         end
     end,
     unfold1 = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', test_data)
         for i = 1, loop_times do
             local c = vkv.get_copy('abcd')
             c[1] = 3121231

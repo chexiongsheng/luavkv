@@ -19,6 +19,8 @@ local _version_of = {}
 
 local _value_of = {}
 
+local _value_to_version = setmetatable({}, {__mode = 'k'})
+
 local make_folded_obj, folded_obj_mt, is_folded_obj, is_unfold_obj
 
 local unfold_the_obj = function(obj)
@@ -90,23 +92,37 @@ _compress = function(tbl)
     return tbl
 end
 
-local set, set_test, get, remove, version_of, existed
+local put, set, set_test, get, remove, version_of, existed
 
---test if a version of key can set
-set_test = function(version, key)
+put = function(version, key, value)
     assert(type(version) == 'number', 'version must be a number!') 
     assert(key ~= nil and type(key) ~= 'table' and type(key) ~= 'userdata', 'key must not be nil or ref type')
+    assert(type(value) == 'table', 'value must be a table')
+    if existed(key) then return false end
+    _version_of[key] = version
+    _value_of[key] = value
+    _value_to_version[value] = version
+    return true
+end
+
+--test if a version of key can set
+set_test = function(key, value)
+    assert(key ~= nil, 'key must not be nil')
+    assert(type(key) ~= 'table' and type(key) ~= 'userdata', 'key must not be ref type')
+    assert(type(value) == 'table', 'value must be a table')
+    local version = _value_to_version[value]
+    if not version then return false end
     local prev_ver = _version_of[key]
     return prev_ver == nil or (prev_ver + 1) == version
 end
 
 --version:version of kv pair
 --return if success, boolean
-set = function(version, key, value) 
-    assert(type(value) == 'table', 'value must be a table')
-    if not set_test(version, key) then return false end
-    _version_of[key] = version
+set = function(key, value) 
+    if not set_test(key, value) then return false end
+    local version = assert(_value_to_version[value])
     if is_unfold_obj(value) then --accessed
+        _version_of[key] = version
         _value_of[key] = value
     end
     return true
@@ -119,7 +135,9 @@ get_copy = function(key)
     assert(key)
     local version = _version_of[key]
     if version then
-        return (version + 1), make_folded_obj(_value_of[key])
+        local ret = make_folded_obj(_value_of[key])
+        _value_to_version[ret] = version + 1
+        return ret
     end
 end
 
@@ -133,12 +151,19 @@ end
 --remove the data(for memory saving)
 remove = function(key)
     assert(key)
-    _version_of[key], _value_of[key] = nil, nil
+    if existed(key) then
+        _value_to_version[_value_of[key]] = nil
+        _version_of[key], _value_of[key] = nil, nil
+    end
 end
 
 --for debug only
-version_of = function(key)
-    return _version_of[key]
+version_of = function(q)
+    if type(q) == 'table' then
+        return _value_to_version[q] 
+    else
+        return _version_of[q]
+    end
 end
 
 existed = function(key)
@@ -146,6 +171,7 @@ existed = function(key)
 end
 
 local M = {
+    put = put,
     set = set,
     set_test = set_test,
     get_copy = get_copy,

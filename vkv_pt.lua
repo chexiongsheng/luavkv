@@ -75,7 +75,7 @@ for i = 1, key_num do
     end
 end
 
-vkv.set(1, 'abcd', test_data)
+vkv.put(1, 'abcd', test_data)
 
 local loop_times = 1000 * 1000 
 
@@ -87,13 +87,13 @@ local test = {
     end,
     unfold = function()
         for i = 1, loop_times do
-            local v, c = vkv.get_copy('abcd')
+            local c = vkv.get_copy('abcd')
             c[1] = 3121231
         end
     end,
     unfold1 = function()
         for i = 1, loop_times do
-            local v, c = vkv.get_copy('abcd')
+            local c = vkv.get_copy('abcd')
             c[1] = 3121231
             c[2] = 3121231
         end

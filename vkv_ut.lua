@@ -21,7 +21,7 @@ local vkv = require 'vkv'
 module( "base", package.seeall, lunit.testcase )
 
 function setup()
-    vkv.set(1, 'abcd', {b = {c = 1111}, [5] = 1})
+    vkv.put(1, 'abcd', {b = {c = 1111}, [5] = 1})
 end
 
 function teardown()
@@ -29,7 +29,7 @@ function teardown()
 end
   
 function test_unfoldbyget()
-    local ver, copy = vkv.get_copy('abcd')
+    local copy = vkv.get_copy('abcd')
     assert(rawget(copy, 'b') == nil)
     assert(rawget(rawget(copy, '__target_obj'), 'b'))
     assert(copy.b)
@@ -41,7 +41,7 @@ function test_unfoldbyget()
 end
 
 function test_unfoldbyset()
-    local ver, copy = vkv.get_copy('abcd')
+    local copy = vkv.get_copy('abcd')
     assert(rawget(copy, 'b') == nil)
     assert(rawget(rawget(copy, '__target_obj'), 'b'))
     copy.e = 2222
@@ -51,7 +51,7 @@ function test_unfoldbyset()
 end
 
 function test_unfoldbypairs()
-    local ver, copy = vkv.get_copy('abcd')
+    local copy = vkv.get_copy('abcd')
     assert(rawget(copy, 'b') == nil)
     assert(rawget(rawget(copy, '__target_obj'), 'b'))
     for k, v in pairs(copy) do end
@@ -60,7 +60,7 @@ function test_unfoldbypairs()
 end
 
 function test_unfoldbyipairs()
-    local ver, copy = vkv.get_copy('abcd')
+    local copy = vkv.get_copy('abcd')
     assert(rawget(copy, 'b') == nil)
     assert(rawget(rawget(copy, '__target_obj'), 'b'))
     for k, v in ipairs(copy) do end
@@ -69,7 +69,7 @@ function test_unfoldbyipairs()
 end
 
 function test_unfoldbynext()
-    local ver, copy = vkv.get_copy('abcd')
+    local copy = vkv.get_copy('abcd')
     assert(rawget(copy, 'b') == nil)
     assert(rawget(rawget(copy, '__target_obj'), 'b'))
     next(copy)
@@ -78,7 +78,7 @@ function test_unfoldbynext()
 end
 
 function test_unfoldbytblfunc()
-    local ver, copy = vkv.get_copy('abcd')
+    local copy = vkv.get_copy('abcd')
     assert(rawget(copy, 'b') == nil)
     assert(rawget(rawget(copy, '__target_obj'), 'b'))
     assert_equal(table.maxn(copy), 5)
@@ -87,31 +87,29 @@ function test_unfoldbytblfunc()
 end
 
 function test_twoversion()
-    local v1, c1 = vkv.get_copy('abcd')
-    local v2, c2 = vkv.get_copy('abcd')
-    assert_equal(v1, v2)
+    local c1 = vkv.get_copy('abcd')
+    local c2 = vkv.get_copy('abcd')
     assert_not_equal(c1, c2)
     c1.e = 2000
     c2.e = 3000
     assert_equal(c1.e, 2000)
-    assert_true(vkv.set_test(v1, 'abcd'))
-    assert_true(vkv.set_test(v2, 'abcd'))
-    vkv.set(v2, 'abcd', c2)
-    assert_false(vkv.set_test(v1, 'abcd'))
-    assert_false(vkv.set(v1, 'abcd', c1))
-    local v3, c3 = vkv.get_copy('abcd')
-    assert(v3 == v1 + 1)
+    assert_true(vkv.set_test('abcd', c1))
+    assert_true(vkv.set_test('abcd', c2))
+    vkv.set('abcd', c2)
+    assert_false(vkv.set_test('abcd', c1))
+    assert_false(vkv.set('abcd', c1))
+    local c3 = vkv.get_copy('abcd')
     assert_equal(c3.e, 3000)
     c3.b.c = 3333
-    assert_true(vkv.set(v3, 'abcd', c3))
-    local v4, c4 = vkv.get_copy('abcd')
+    assert_true(vkv.set('abcd', c3))
+    local c4 = vkv.get_copy('abcd')
     assert_equal(c4.b.c, 3333)
 end
 
 function test_compress()
-    local v1, c1 = vkv.get_copy('abcd')
+    local c1 = vkv.get_copy('abcd')
     c1.e = 1000
-    vkv.set(v1, 'abcd', c1)
+    vkv.set('abcd', c1)
     local cr1 = vkv._raw_get('abcd')
     assert(rawget(cr1, 'b'))
     assert(rawget(cr1.b, '__target_obj'))
@@ -124,21 +122,29 @@ function test_compress()
 end
 
 function test_ver_over_ver()
-    local v1, c1 = vkv.get_copy('abcd')
+    local c1 = vkv.get_copy('abcd')
     c1.e = 1000
-    vkv.set(v1, 'abcd', c1)
-    local v2, c2 = vkv.get_copy('abcd')
+    vkv.set('abcd', c1)
+    local c2 = vkv.get_copy('abcd')
     c2.e = 2000
-    vkv.set(v2, 'abcd', c2)
-    local v3, c3 = vkv.get_copy('abcd')
+    vkv.set('abcd', c2)
+    local c3 = vkv.get_copy('abcd')
     assert_equal(c1.e, 1000)
     assert_equal(c3.e, 2000)
 end
 
 function test_param1()
-    assert_error_match('version must be a number', function() vkv.set("fda", "fdaf", {}) end)
-    assert_error_match('key must not be nil or ref type', function() vkv.set(1, {}, {}) end)
-    assert_error_match('value must be a table', function() vkv.set(1, 'a11', '3214') end)
+    assert_error_match('key must not be nil', function() vkv.set() end)
+    assert_error_match('key must not be ref type', function() vkv.set({}, {}) end)
+    assert_error_match('value must be a table', function() vkv.set('a11', '3214') end)
 end
+
+function test_existed()
+    assert_true(vkv.existed('abcd'))
+    assert_false(vkv.existed(1234))
+    vkv.put(1, 1234, {})
+    assert_true(vkv.existed(1234))
+end
+
 
 

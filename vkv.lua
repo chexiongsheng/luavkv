@@ -24,12 +24,13 @@ local _value_to_version = setmetatable({}, {__mode = 'k'})
 local make_folded_obj, folded_obj_mt, is_folded_obj, is_unfold_obj
 
 --save the original table func
-local org_next = _G.next
-local org_pairs = _G.pairs
-local org_ipairs = _G.ipairs
-local org_table = {}
+local original = {}
+original.next = _G.next
+original.pairs = _G.pairs
+original.ipairs = _G.ipairs
+original.table = {}
 for fun_name, fun in pairs(_G.table) do
-    org_table[fun_name] = fun
+    original.table[fun_name] = fun
 end
 
 local pairs = _G.pairs
@@ -70,13 +71,20 @@ local make_table_fun = function(org_fun)
         return org_fun(unfold_the_obj(t), ...)
     end
 end
+local intercepted = {table = {}}
+for fun_name, fun in pairs(_G.table) do
+    intercepted.table[fun_name] = make_table_fun(fun)
+end
+intercepted.next = make_table_fun(next)
+intercepted.pairs = make_table_fun(pairs)
+intercepted.ipairs = make_table_fun(ipairs)
 local intercept_tbl_func = function()
     for fun_name, fun in pairs(_G.table) do
-        _G.table[fun_name] = make_table_fun(fun)
+        _G.table[fun_name] = intercepted.table[fun_name]
     end
-    _G.next = make_table_fun(next)
-    _G.pairs = make_table_fun(pairs)
-    _G.ipairs = make_table_fun(ipairs)
+    _G.next = intercepted.next
+    _G.pairs = intercepted.pairs
+    _G.ipairs = intercepted.ipairs
 end
 
 make_folded_obj = function(obj)
@@ -184,13 +192,14 @@ local M = {
     remove = remove,
     version_of = version_of,
     existed = existed,
-    original_func = {
-        pairs = org_pairs,
-        ipairs = org_ipairs,
-        next = org_next,
-        table = org_table,
+    table_func = {
+        original = original,
+        next = intercepted.next,
+        ipairs = intercepted.ipairs,
+        pairs = intercepted.pairs,
+        table = intercepted.table,
     },
-    intercept = intercept_tbl_func,
+    intercept_G = intercept_tbl_func,
 }
 
 --unsafe api, for inner usage only

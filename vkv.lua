@@ -208,6 +208,7 @@ M._raw_get_all = function() return _value_of end
 M._clear_up = function()
     _value_of = {}
     _version_of = {}
+    _value_to_version = setmetatable({}, {__mode = 'k'})
 end
 
 return M

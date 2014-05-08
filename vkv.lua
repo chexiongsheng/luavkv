@@ -23,6 +23,17 @@ local _value_to_version = setmetatable({}, {__mode = 'k'})
 
 local make_folded_obj, folded_obj_mt, is_folded_obj, is_unfold_obj
 
+--save the original table func
+local org_next = _G.next
+local org_pairs = _G.pairs
+local org_ipairs = _G.ipairs
+local org_table = {}
+for fun_name, fun in pairs(_G.table) do
+    org_table[fun_name] = fun
+end
+
+local pairs = _G.pairs
+
 local unfold_the_obj = function(obj)
     if is_unfold_obj(obj) then 
         return obj 
@@ -54,25 +65,19 @@ is_unfold_obj = function(obj)
     return not is_folded_obj(obj)
 end
 
---intercep the table functions begin
 local make_table_fun = function(org_fun)
     return function(t, ...)
         return org_fun(unfold_the_obj(t), ...)
     end
 end
-
-local org_next = _G.next
-local org_pairs = _G.pairs
-local org_ipairs = _G.ipairs
-local org_table = {}
-for fun_name, fun in org_pairs(_G.table) do
-    org_table[fun_name] = fun
-    _G.table[fun_name] = make_table_fun(fun)
+local intercept_tbl_func = function()
+    for fun_name, fun in pairs(_G.table) do
+        _G.table[fun_name] = make_table_fun(fun)
+    end
+    _G.next = make_table_fun(next)
+    _G.pairs = make_table_fun(pairs)
+    _G.ipairs = make_table_fun(ipairs)
 end
-_G.next = make_table_fun(next)
-_G.pairs = make_table_fun(pairs)
-_G.ipairs = make_table_fun(ipairs)
---intercep the table functions end
 
 make_folded_obj = function(obj)
     return is_folded_obj(obj) and obj or setmetatable({__target_obj = obj}, folded_obj_mt)
@@ -84,7 +89,7 @@ _compress = function(tbl)
     if is_folded_obj(tbl) then --folded_obj, just return __target_obj
         tbl = rawget(tbl, '__target_obj')
     end
-    for k, v in org_pairs(tbl) do
+    for k, v in pairs(tbl) do
         if type(v) == 'table' then
             tbl[k] = _compress(v) --m
         end
@@ -184,7 +189,8 @@ local M = {
         ipairs = org_ipairs,
         next = org_next,
         table = org_table,
-    }
+    },
+    intercept = intercept_tbl_func,
 }
 
 --unsafe api, for inner usage only

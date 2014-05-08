@@ -17,6 +17,7 @@
 
 require 'lunit'
 local vkv = require 'vkv'
+vkv.intercept() --make pairs, ipairs, next, table.each etc. intercepted
 
 module( "base", package.seeall, lunit.testcase )
 

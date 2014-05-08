@@ -36,7 +36,7 @@ function test_unfoldbyget()
     assert(copy.b)
     assert(rawget(copy, 'b'))
     assert(rawget(copy.b, 'c') == nil)
-    assert(copy.b.c == 1111)
+    assert_equal(copy.b.c, 1111)
     assert(rawget(copy, '__target_obj') == nil)
     assert(rawget(copy.b, '__target_obj') == nil)
 end
@@ -154,5 +154,14 @@ function test_setnil()
     assert_true(vkv.set('abcd', c1))
     local c2 = vkv.get_copy('abcd')
     assert(c2.b == nil)
+end
+
+function test_level2set()
+    local c1 = vkv.get_copy('abcd')
+    assert_equal(c1.b.c, 1111)
+    c1.b.c = 2222
+    assert_true(vkv.set('abcd', c1))
+    local c2 = vkv.get_copy('abcd')
+    assert_equal(c2.b.c, 2222)
 end
 

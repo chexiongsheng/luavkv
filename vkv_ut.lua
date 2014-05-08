@@ -147,5 +147,12 @@ function test_existed()
     assert_true(vkv.existed(1234))
 end
 
-
+function test_setnil()
+    local c1 = vkv.get_copy('abcd')
+    assert(c1.b)
+    c1.b = nil
+    assert_true(vkv.set('abcd', c1))
+    local c2 = vkv.get_copy('abcd')
+    assert(c2.b == nil)
+end
 

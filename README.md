@@ -25,3 +25,27 @@ print(c3.d)  -- 2000
 print(vkv.version_of(key)) --2
 print(vkv.version_of(c3))  --3
 ```
+
+### Intercept the table functions
+
+```lua
+local vkv = require 'vkv'
+local key = 12345
+vkv.put(1, key, {b = {c = 1111}, [5] = 1}) -- true
+
+local c = vkv.get_copy(key)
+
+for k in pairs(c) do
+    print(k)
+end
+--output:
+--    __target_obj
+
+vkv.intercept_G() --make pairs, ipairs, next, table.each etc. intercepted
+for k in pairs(c) do
+    print(k)
+end
+--output:
+--    b
+--    5
+```

@@ -24,11 +24,10 @@ local _value_to_version = setmetatable({}, {__mode = 'k'})
 local make_folded_obj, folded_obj_mt, is_folded_obj, is_unfold_obj
 
 --save the original table func
-local original = {}
+local original = {table = {}}
 original.next = _G.next
 original.pairs = _G.pairs
 original.ipairs = _G.ipairs
-original.table = {}
 for fun_name, fun in pairs(_G.table) do
     original.table[fun_name] = fun
 end

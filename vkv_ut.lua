@@ -182,3 +182,10 @@ function test_settable()
     assert(next(c2.i) == nil)
 end
 
+function test_settblkey()
+    local c1 = vkv.get_copy('abcd')
+    assert_error(function()
+        c1[{}] = 1
+    end)
+end
+

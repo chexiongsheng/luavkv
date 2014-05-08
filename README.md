@@ -14,12 +14,15 @@ print(vkv.existed(key)) --false
 --init a value, paramters: version-key-value, that is why this lib named vkv
 print(vkv.put(1, key, {b = {c = 1111}, [5] = 1})) -- true  
 print(vkv.existed(key)) --true  
+-- get two copy
 local c1 = vkv.get_copy(key)  
-c1.d = 1000  
 local c2 = vkv.get_copy(key)  
+c1.d = 1000  
 c2.d = 2000  
 print(vkv.set(key, c2)) --true  
+--the copy c1 is out of date, so fail to update to the vkv
 print(vkv.set(key, c1)) --false  
+--the api set_test can test if a copy can commit
 print(vkv.set_test(key, c1)) --false  
 local c3 = vkv.get_copy(key)  
 print(c3.d)  -- 2000  

@@ -20,6 +20,7 @@ local c2 = vkv.get_copy(key)
 c2.d = 2000  
 print(vkv.set(key, c2)) --true  
 print(vkv.set(key, c1)) --false  
+print(vkv.set_test(key, c1)) --false  
 local c3 = vkv.get_copy(key)  
 print(c3.d)  -- 2000  
 print(vkv.version_of(key)) --2

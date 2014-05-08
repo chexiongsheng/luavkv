@@ -29,16 +29,14 @@ function teardown()
     vkv._clear_up()
 end
   
-function test_unfoldbyget()
+function test_index()
     local copy = vkv.get_copy('abcd')
     assert(rawget(copy, 'b') == nil)
     assert(rawget(rawget(copy, '__target_obj'), 'b'))
     assert(copy.b)
-    assert(rawget(copy, 'b'))
+    assert(rawget(copy, 'b') == nil)
     assert(rawget(copy.b, 'c') == nil)
     assert_equal(copy.b.c, 1111)
-    assert(rawget(copy, '__target_obj') == nil)
-    assert(rawget(copy.b, '__target_obj') == nil)
 end
 
 function test_unfoldbyset()
@@ -107,21 +105,6 @@ function test_twoversion()
     assert_equal(c4.b.c, 3333)
 end
 
-function test_compress()
-    local c1 = vkv.get_copy('abcd')
-    c1.e = 1000
-    vkv.set('abcd', c1)
-    local cr1 = vkv._raw_get('abcd')
-    assert(rawget(cr1, 'b'))
-    assert(rawget(cr1.b, '__target_obj'))
-    vkv.compress('abcd')
-    local cr2 = vkv._raw_get('abcd')
-    assert(rawget(cr2, 'b'))
-    assert(rawget(cr2.b, '__target_obj') == nil)
-    assert_equal(cr2.e, 1000)
-    assert_equal(cr2.b.c, 1111)
-end
-
 function test_ver_over_ver()
     local c1 = vkv.get_copy('abcd')
     c1.e = 1000
@@ -156,6 +139,15 @@ function test_setnil()
     assert(c2.b == nil)
 end
 
+function test_setnil2()
+    local c1 = vkv.get_copy('abcd')
+    assert_equal(c1[5], 1)
+    c1[5] = nil
+    assert_true(vkv.set('abcd', c1))
+    local c2 = vkv.get_copy('abcd')
+    assert(c2[5] == nil)
+end
+
 function test_level2set()
     local c1 = vkv.get_copy('abcd')
     assert_equal(c1.b.c, 1111)
@@ -163,5 +155,30 @@ function test_level2set()
     assert_true(vkv.set('abcd', c1))
     local c2 = vkv.get_copy('abcd')
     assert_equal(c2.b.c, 2222)
+end
+
+function test_level2set2()
+    local c1 = vkv.get_copy('abcd')
+    c1.b.c = 2222
+    local c2 = vkv.get_copy('abcd')
+    c2.b.c = 3333
+    assert_not_equal(c1.b.c, c2.b.c)
+    assert_true(vkv.set('abcd', c1))
+    local c3 = vkv.get_copy('abcd')
+    assert_equal(c3.b.c, 2222)
+end
+
+
+function test_settable()
+    local c1 = vkv.get_copy('abcd')
+    c1.e = {}
+    c1.e.f = 10
+    c1.g = {h=20}
+    c1.i = {}
+    assert_true(vkv.set('abcd', c1))
+    local c2 = vkv.get_copy('abcd')
+    assert_equal(c2.e.f, 10)
+    assert_equal(c2.g.h, 20)
+    assert(next(c2.i) == nil)
 end
 

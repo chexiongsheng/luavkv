@@ -85,21 +85,21 @@ local test = {
             assert(vkv.get_copy('abcd'))
         end
     end,
-    unfold = function()
+    get = function()
         local vkv = require 'vkv'
         vkv.put(1, 'abcd', test_data)
+        local key = next(test_data)
         for i = 1, loop_times do
             local c = vkv.get_copy('abcd')
-            c[1] = 3121231
+            local tmp = c[key]
         end
     end,
-    unfold1 = function()
+    set = function()
         local vkv = require 'vkv'
         vkv.put(1, 'abcd', test_data)
         for i = 1, loop_times do
             local c = vkv.get_copy('abcd')
             c[1] = 3121231
-            c[2] = 3121231
         end
     end,
     --for comparetion begin

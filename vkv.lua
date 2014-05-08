@@ -43,16 +43,38 @@ local unfold_the_obj = function(obj)
     rawset(obj, '__target_obj', nil)
     --shallow copy of target_obj, and if a child is unfold, make a folded object of it 
     for k, v in pairs(target_obj) do
-        obj[k] = (type(v) == 'table' and is_unfold_obj(v)) and make_folded_obj(v) or v
+        if type(v) == 'table' then
+            local av = rawget(obj, v)
+            if av then 
+                rawset(obj, k, av)
+                rawset(obj, v, nil)
+            else
+                rawset(obj, k, make_folded_obj(v))
+            end
+        else
+            rawset(obj, k, v)
+        end
     end
     return obj
 end
 
 folded_obj_mt = {
     __index = function(t, k)
-        return unfold_the_obj(t)[k]
+        local v = rawget(rawget(t, '__target_obj'), k)
+        if type(v) == 'table' then
+            local cv = rawget(t, v)
+            if cv then
+                v = cv
+            else
+                nv = make_folded_obj(v)
+                rawset(t, v, nv)
+                v = nv
+            end
+        end
+        return v
     end,
     __newindex = function(t, k, v)
+        assert(type(k) ~= 'table')
         unfold_the_obj(t)[k] = v
     end
 }
@@ -90,18 +112,36 @@ make_folded_obj = function(obj)
     return is_folded_obj(obj) and obj or setmetatable({__target_obj = obj}, folded_obj_mt)
 end
 
---make obj to raw table
-local _compress
-_compress = function(tbl)
-    if is_folded_obj(tbl) then --folded_obj, just return __target_obj
-        tbl = rawget(tbl, '__target_obj')
-    end
-    for k, v in pairs(tbl) do
+
+local function _merge(obj)
+    local modifyed = false
+    local target_obj = rawget(obj, '__target_obj')
+    setmetatable(obj, nil)
+    rawset(obj, '__target_obj', nil)
+
+    for k, v in pairs(obj) do
         if type(v) == 'table' then
-            tbl[k] = _compress(v) --m
+            local nv, bm = _merge(v)
+            rawset(obj, k, nv)
+            modifyed = modifyed or bm
         end
     end
-    return tbl
+
+    if modifyed and target_obj then --merge the target_obj
+        --target_obj is normal obj
+        assert(is_unfold_obj(target_obj))
+        for k, v in pairs(target_obj) do
+            local av = rawget(obj, v)
+            obj[k] = av or v
+            if av then 
+                rawset(obj, v, nil)
+            end
+        end
+    end
+    if not target_obj then
+        modifyed = true
+    end
+    return (modifyed and obj or target_obj), modifyed
 end
 
 local put, set, set_test, get, remove, version_of, existed
@@ -133,16 +173,14 @@ end
 set = function(key, value) 
     if not set_test(key, value) then return false end
     local version = assert(_value_to_version[value])
-    if is_unfold_obj(value) then --accessed
-        _version_of[key] = version
-        _value_of[key] = value
-    end
+    _version_of[key] = version
+    _value_of[key] = _merge(value)
+    _value_to_version[value] = nil
     return true
 end
 
 --get a new copy
 --return version, value, if not data, version is nil
---bcompress:if do the compression 
 get_copy = function(key) 
     assert(key)
     local version = _version_of[key]
@@ -150,13 +188,6 @@ get_copy = function(key)
         local ret = make_folded_obj(_value_of[key])
         _value_to_version[ret] = version + 1
         return ret
-    end
-end
-
-local compress = function(key)
-    assert(key)
-    if _version_of[key] then
-        _value_of[key] = _compress(_value_of[key]) 
     end
 end
 
@@ -187,7 +218,6 @@ local M = {
     set = set,
     set_test = set_test,
     get_copy = get_copy,
-    compress = compress,
     remove = remove,
     version_of = version_of,
     existed = existed,

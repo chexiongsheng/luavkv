@@ -11,7 +11,7 @@ key-value store with version number
 local vkv = require 'vkv'  
 local key = 12345  
 print(vkv.existed(key)) --false  
---init a value, paramters: version key value
+--init a value, paramters: version-key-value, that is why this lib named vkv
 print(vkv.put(1, key, {b = {c = 1111}, [5] = 1})) -- true  
 print(vkv.existed(key)) --true  
 local c1 = vkv.get_copy(key)  

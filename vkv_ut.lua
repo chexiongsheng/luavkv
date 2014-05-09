@@ -22,7 +22,11 @@ vkv.intercept_G() --make pairs, ipairs, next, table.each etc. intercepted
 module( "base", package.seeall, lunit.testcase )
 
 function setup()
-    vkv.put(1, 'abcd', {b = {c = 1111}, [5] = 1})
+    vkv.put(1, 'abcd', {
+        b = {c = 1111}, 
+        [5] = 1,
+        x = {y = {z = 100}}
+    })
 end
 
 function teardown()
@@ -154,7 +158,7 @@ function test_level2set()
     c1.b.c = 2222
     assert_true(vkv.set('abcd', c1))
     local c2 = vkv.get_copy('abcd')
-    assert_equal(c2.b.c, 2222)
+    assert_equal(2222, c2.b.c)
 end
 
 function test_level2set2()
@@ -164,8 +168,19 @@ function test_level2set2()
     c2.b.c = 3333
     assert_not_equal(c1.b.c, c2.b.c)
     assert_true(vkv.set('abcd', c1))
+    assert_equal(2, vkv.version_of('abcd'))
     local c3 = vkv.get_copy('abcd')
-    assert_equal(c3.b.c, 2222)
+    assert_equal(2222, c3.b.c)
+end
+
+function test_level3set()
+    local c1 = vkv.get_copy('abcd')
+    c1[5] = 3344
+    c1.x.y.z = 5566
+    assert_true(vkv.set('abcd', c1))
+    local c2 = vkv.get_copy('abcd')
+    assert_equal(3344, c2[5])
+    assert_equal(5566, c2.x.y.z)
 end
 
 

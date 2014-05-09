@@ -138,6 +138,33 @@ local test = {
         end
         print('---version:', vkv.version_of('abcd'))
     end,
+    l7setcommit = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', leve7_data)
+        for i = 1, loop_times do
+            local copy = vkv.get_copy('abcd')
+            copy.a.b.c.e.f.g.h = 2000
+            --assert(copy.a.b.c)
+            vkv.set('abcd', copy)
+        end
+        print('---version:', vkv.version_of('abcd'))
+    end,
+    l7getraw = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', leve7_data)
+        for i = 1, loop_times do
+            local copy = vkv.get_copy('abcd')
+            assert(leve7_data.a.b.c.e.f.g.h == 1000)
+        end
+    end,
+    l7setraw = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', leve7_data)
+        for i = 1, loop_times do
+            local copy = vkv.get_copy('abcd')
+            leve7_data.a.b.c.e.f.g.h = 1000
+        end
+    end,
     --for comparetion begin
     msgpack = function() 
         require 'util'

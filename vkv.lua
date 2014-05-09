@@ -66,7 +66,7 @@ folded_obj_mt = {
             if cv then
                 v = cv
             else
-                nv = make_folded_obj(v)
+                local nv = make_folded_obj(v)
                 rawset(t, v, nv)
                 v = nv
             end

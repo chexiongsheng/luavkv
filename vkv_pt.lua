@@ -103,12 +103,28 @@ local test = {
             local tmp = c[key]
         end
     end,
+    set = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', test_data)
+        for i = 1, loop_times do
+            local c = vkv.get_copy('abcd')
+            c[1] = 3121231
+        end
+    end,
     l7get = function()
         local vkv = require 'vkv'
         vkv.put(1, 'abcd', leve7_data)
         for i = 1, loop_times do
             local copy = vkv.get_copy('abcd')
             assert(copy.a.b.c.e.f.g.h == 1000)
+        end
+    end,
+    l7set = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', leve7_data)
+        for i = 1, loop_times do
+            local copy = vkv.get_copy('abcd')
+            copy.a.b.c.e.f.g.h = 1000
         end
     end,
     l7getcommit = function()
@@ -121,14 +137,6 @@ local test = {
             vkv.set('abcd', copy)
         end
         print('---version:', vkv.version_of('abcd'))
-    end,
-    set = function()
-        local vkv = require 'vkv'
-        vkv.put(1, 'abcd', test_data)
-        for i = 1, loop_times do
-            local c = vkv.get_copy('abcd')
-            c[1] = 3121231
-        end
     end,
     --for comparetion begin
     msgpack = function() 

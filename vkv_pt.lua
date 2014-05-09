@@ -117,6 +117,7 @@ local test = {
         for i = 1, loop_times do
             local copy = vkv.get_copy('abcd')
             assert(copy.a.b.c.e.f.g.h == 1000)
+            --assert(copy.a.b.c)
             vkv.set('abcd', copy)
         end
         print('---version:', vkv.version_of('abcd'))

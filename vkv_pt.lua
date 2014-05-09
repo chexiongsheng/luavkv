@@ -77,6 +77,15 @@ end
 
 local loop_times = 1000 * 1000 
 
+local leve7_data = {}
+leve7_data.a ={}
+leve7_data.a.b ={}
+leve7_data.a.b.c ={}
+leve7_data.a.b.c.e ={}
+leve7_data.a.b.c.e.f ={}
+leve7_data.a.b.c.e.f.g ={}
+leve7_data.a.b.c.e.f.g.h = 1000
+
 local test = {
     get_copy = function()
         local vkv = require 'vkv'
@@ -93,6 +102,24 @@ local test = {
             local c = vkv.get_copy('abcd')
             local tmp = c[key]
         end
+    end,
+    l7get = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', leve7_data)
+        for i = 1, loop_times do
+            local copy = vkv.get_copy('abcd')
+            assert(copy.a.b.c.e.f.g.h == 1000)
+        end
+    end,
+    l7getcommit = function()
+        local vkv = require 'vkv'
+        vkv.put(1, 'abcd', leve7_data)
+        for i = 1, loop_times do
+            local copy = vkv.get_copy('abcd')
+            assert(copy.a.b.c.e.f.g.h == 1000)
+            vkv.set('abcd', copy)
+        end
+        print('---version:', vkv.version_of('abcd'))
     end,
     set = function()
         local vkv = require 'vkv'

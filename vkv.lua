@@ -114,7 +114,7 @@ end
 
 
 local function _merge(obj)
-    local modifyed = false
+    local obj_modifyed = false
     local target_obj = rawget(obj, '__target_obj')
     setmetatable(obj, nil)
     rawset(obj, '__target_obj', nil)
@@ -123,25 +123,21 @@ local function _merge(obj)
         if type(v) == 'table' then
             local nv, bm = _merge(v)
             rawset(obj, k, nv)
-            modifyed = modifyed or bm
+            obj_modifyed = obj_modifyed or bm
         end
     end
 
-    if modifyed and target_obj then --merge the target_obj
+    if obj_modifyed and target_obj then --merge change to target_obj
         --target_obj is normal obj
         assert(is_unfold_obj(target_obj))
         for k, v in pairs(target_obj) do
-            local av = rawget(obj, v)
-            obj[k] = av or v
-            if av then 
-                rawset(obj, v, nil)
+            local nv = rawget(obj, v)
+            if nv then 
+                rawset(target_obj, k, nv)
             end
         end
     end
-    if not target_obj then
-        modifyed = true
-    end
-    return (modifyed and obj or target_obj), modifyed
+    return (target_obj or obj), (obj_modifyed or target_obj == nil)
 end
 
 local put, set, set_test, get, remove, version_of, existed

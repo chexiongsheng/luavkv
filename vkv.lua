@@ -21,7 +21,7 @@ local _value_of = {}
 
 local _value_to_version = setmetatable({}, {__mode = 'k'})
 
-local make_folded_obj, folded_obj_mt, is_folded_obj, is_unfold_obj
+local make_folded_obj, recycle_obj, folded_obj_mt, is_folded_obj, is_unfold_obj
 
 --save the original table func
 local original = {table = {}}
@@ -33,6 +33,7 @@ for fun_name, fun in pairs(_G.table) do
 end
 
 local pairs = _G.pairs
+local table = _G.table
 
 local unfold_the_obj = function(obj)
     if is_unfold_obj(obj) then 
@@ -108,10 +109,23 @@ local intercept_tbl_func = function()
     _G.ipairs = intercepted.ipairs
 end
 
+local _obj_list = {}
+local _max_obj_list_size = 100
 make_folded_obj = function(obj)
-    return is_folded_obj(obj) and obj or setmetatable({__target_obj = obj}, folded_obj_mt)
+    if is_folded_obj(obj) then return obj  end
+    local ret = table.remove(_obj_list)
+    if ret then
+        rawset(ret, '__target_obj', obj)
+        return ret
+    else
+        return setmetatable({__target_obj = obj}, folded_obj_mt)
+    end
 end
-
+recycle_obj = function(obj)
+    if #_obj_list < _max_obj_list_size then
+        table.insert(_obj_list, obj)
+    end
+end
 
 local function _merge(obj)
     local obj_modifyed = false
@@ -132,8 +146,12 @@ local function _merge(obj)
             local nv = rawget(obj, v)
             if nv then 
                 rawset(target_obj, k, nv)
+                rawset(obj, v, nil)
             end
         end
+    end
+    if target_obj then
+        recycle_obj(obj)
     end
     return (target_obj or obj), (obj_modifyed or target_obj == nil)
 end

@@ -156,7 +156,7 @@ local function _merge(obj)
     return (target_obj or obj), (obj_modifyed or target_obj == nil)
 end
 
-local put, set, set_test, get, remove, version_of, existed
+local put, set, set_test, get_copy, remove, version_of, existed
 
 put = function(version, key, value)
     assert(type(version) == 'number', 'version must be a number!') 

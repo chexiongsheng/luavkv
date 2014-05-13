@@ -8,7 +8,6 @@
 --         BUGS:  ---
 --        NOTES:  ---
 --       AUTHOR:  John, <chexiongsheng@qq.com>
---      COMPANY:  guangqi,shenzhen
 --      VERSION:  1.0
 --      CREATED:  2014年05月03日 10时39分12秒 CST
 --     REVISION:  ---
@@ -116,6 +115,11 @@ local test = {
         vkv.put(1, 'abcd', leve7_data)
         for i = 1, loop_times do
             local copy = vkv.get_copy('abcd')
+            assert(copy.a.b.c.e.f.g.h == 1000)
+            assert(copy.a.b.c.e.f.g.h == 1000)
+            assert(copy.a.b.c.e.f.g.h == 1000)
+            assert(copy.a.b.c.e.f.g.h == 1000)
+            assert(copy.a.b.c.e.f.g.h == 1000)
             assert(copy.a.b.c.e.f.g.h == 1000)
         end
     end,

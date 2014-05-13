@@ -8,7 +8,6 @@
 --         BUGS:  ---
 --        NOTES:  ---
 --       AUTHOR:  John, <chexiongsheng@qq.com>
---      COMPANY:  guangqi,shenzhen
 --      VERSION:  1.0
 --      CREATED:  2014年05月07日 17时37分24秒 CST
 --     REVISION:  ---

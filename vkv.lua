@@ -75,6 +75,8 @@ folded_obj_mt = {
     end,
     __newindex = function(t, k, v)
         assert(type(k) ~= 'table')
+        --对无实际改变的优化
+        if rawget(rawget(t, '__target_obj'), k) == v then return end
         unfold_the_obj(t)[k] = v
     end
 }
@@ -184,8 +186,10 @@ end
 set = function(key, value) 
     if not set_test(key, value) then return false end
     local version = assert(_value_to_version[value])
+    local merged_value, bmodify = _merge(value)
+    if not bmodify then return true end
     _version_of[key] = version
-    _value_of[key] = _merge(value)
+    _value_of[key] = merged_value
     _value_to_version[value] = nil
     return true
 end

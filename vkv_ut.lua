@@ -195,6 +195,13 @@ function test_settable()
     assert_equal(c2.g.h, 20)
     assert(next(c2.i) == nil)
 end
+function test_merge()
+    local c1 = vkv.get_copy('abcd')
+    c1[5] = 10321
+    assert_true(vkv.set('abcd', c1))
+    local raw = vkv._raw_get('abcd')
+    assert(rawget(rawget(raw, 'b'), '__target_obj') == nil)
+end
 
 function test_settblkey()
     local c1 = vkv.get_copy('abcd')

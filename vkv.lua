@@ -131,15 +131,16 @@ end
 local function _merge(obj)
     local obj_modifyed = false
 
+    local target_obj = rawget(obj, '__target_obj')
+    rawset(obj, '__target_obj', nil)
     for k, v in pairs(obj) do
-        if type(k) == 'table' then
+        if type(v) == 'table' then
             local nv, bm = _merge(v)
             rawset(obj, k, nv)
             obj_modifyed = obj_modifyed or bm
         end
     end
 
-    local target_obj = rawget(obj, '__target_obj')
     if obj_modifyed and target_obj then --merge change to target_obj
         --target_obj is normal obj
         assert(is_unfold_obj(target_obj))
